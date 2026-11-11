@@ -1,2 +1,2 @@
 # go-steam-workshop
-Library for listing steam workshop items
+Library for listing steam workshop files

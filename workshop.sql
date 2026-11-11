@@ -12,5 +12,6 @@ CREATE TABLE published_files (
 	subscriptions BIGINT NOT NULL,
 	creator_appid BIGINT NOT NULL,
 	consumer_appid BIGINT NOT NULL,
+	disabled BOOLEAN DEFAULT false,
 	detail JSONB NOT NULL
 );

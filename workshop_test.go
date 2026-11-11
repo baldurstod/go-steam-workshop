@@ -80,10 +80,19 @@ func testAppId(t *testing.T, appId uint) {
 	}
 }
 func TestRefreshTf2(t *testing.T) {
+	testRefreshApp(t, 440)
+}
+
+func TestRefreshSFM(t *testing.T) {
+	testRefreshApp(t, 1840)
+}
+
+func testRefreshApp(t *testing.T, appId uint) {
 	db := openPostgre(config.DataSource)
+	defer closePostgre()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	err := steamworkshop.RefreshPublishedFiles(ctx, db, config.ApiKey, 440, false,
+	err := steamworkshop.RefreshPublishedFiles(ctx, db, config.ApiKey, appId, true,
 		steamworkshop.WithReturnPreviews(),
 		steamworkshop.WithReturnVoteData(),
 		steamworkshop.WithReturnTags(),
@@ -94,6 +103,34 @@ func TestRefreshTf2(t *testing.T) {
 		t.Error(err)
 		return
 	}
+}
+
+func TestGetSFMFiles(t *testing.T) {
+	testGetAppFiles(t, 1840)
+}
+
+func testGetAppFiles(t *testing.T, appId uint) {
+	db := openPostgre(config.DataSource)
+	defer closePostgre()
+	files, err := steamworkshop.GetPublishedFiles(db, appId, steamworkshop.FileParams{Filter: steamworkshop.FileFilter{Types: []string{"Model", "Texture"}}})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	log.Println(files)
+}
+
+func TestGetFileUrl(t *testing.T) {
+	db := openPostgre(config.DataSource)
+	defer closePostgre()
+	url, err := steamworkshop.GetFileUrl(db, 3749980470)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	log.Println(url)
 }
 
 func TestGetPublishedFileDetails(t *testing.T) {
@@ -111,7 +148,7 @@ func TestGetPublishedFileDetails(t *testing.T) {
 
 	j, _ := json.MarshalIndent(&response, "", "\t")
 
-	err = os.WriteFile("./var/item_440.json", j, 0666)
+	err = os.WriteFile("./var/file_440.json", j, 0666)
 	if err != nil {
 		t.Error(err)
 		return

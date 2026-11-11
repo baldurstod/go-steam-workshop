@@ -9,7 +9,7 @@ import (
 )
 
 func RefreshPublishedFiles(ctx context.Context, db *sql.DB, apiKey string, appId uint, full bool, opts ...QueryFilesOption) error {
-	log.Println("Starting items refresh")
+	log.Println("Starting files refresh")
 
 	cursor := "*"
 	page := 1
@@ -60,7 +60,7 @@ func RefreshPublishedFiles(ctx context.Context, db *sql.DB, apiKey string, appId
 
 			updated, err := insertPublishedFile(db, file)
 			if err != nil {
-				log.Println("failed to insert item: ", err)
+				log.Println("failed to insert file: ", err)
 			}
 
 			if updated {
@@ -69,7 +69,7 @@ func RefreshPublishedFiles(ctx context.Context, db *sql.DB, apiKey string, appId
 		}
 
 		if !full && !anyUpdated {
-			log.Println("no item updated on the entire page, leaving")
+			log.Println("no file updated on the entire page, leaving")
 			break
 		}
 
