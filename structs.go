@@ -11,6 +11,7 @@ type WorkshopItem struct {
 	FileUrl                    string        `json:"file_url" mapstructure:"file_url"`
 	PreviewUrl                 string        `json:"preview_url" mapstructure:"preview_url"`
 	Subscriptions              uint64        `json:"subscriptions" mapstructure:"subscriptions"`
+	CreatorAppid               uint64        `json:"creator_appid" mapstructure:"consumer_appid"`
 	ConsumerAppid              uint64        `json:"consumer_appid" mapstructure:"consumer_appid"`
 	MaybeInappropriateSex      bool          `json:"maybe_inappropriate_sex" mapstructure:"maybe_inappropriate_sex"`
 	MaybeInappropriateViolence bool          `json:"maybe_inappropriate_violence" mapstructure:"maybe_inappropriate_violence"`

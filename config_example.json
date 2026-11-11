@@ -1,4 +1,7 @@
 {
+	"database": {
+		"datasource": ""
+	},
 	"steam": {
 		"api_key": ""
 	}

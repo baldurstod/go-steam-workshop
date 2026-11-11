@@ -1,20 +1,28 @@
 package steamworkshop_test
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
 	"os"
+	"strconv"
 	"testing"
+	"time"
 
 	steamworkshop "github.com/baldurstod/go-steam-workshop"
 )
 
 type Config struct {
-	Steam `json:"steam"`
+	Database `json:"database"`
+	Steam    `json:"steam"`
 }
 type Steam struct {
 	ApiKey string `json:"api_key"`
+}
+type Database struct {
+	DataSource string `json:"datasource"`
 }
 
 var config = Config{}
@@ -35,7 +43,15 @@ func init() {
 }
 
 func TestTf2(t *testing.T) {
-	content, err := steamworkshop.QueryFiles(config.ApiKey, 440, "*",
+	testAppId(t, 440)
+}
+
+func TestSFM(t *testing.T) {
+	testAppId(t, 1840)
+}
+
+func testAppId(t *testing.T, appId uint) {
+	content, err := steamworkshop.QueryFiles(config.ApiKey, appId, "*",
 		steamworkshop.WithReturnPreviews(),
 		steamworkshop.WithReturnVoteData(),
 		steamworkshop.WithReturnTags(),
@@ -57,7 +73,23 @@ func TestTf2(t *testing.T) {
 
 	j, _ := json.MarshalIndent(&response, "", "\t")
 
-	err = os.WriteFile("./var/items_440.json", j, 0666)
+	err = os.WriteFile("./var/published_files_"+strconv.FormatUint(uint64(appId), 10)+".json", j, 0666)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+func TestRefreshTf2(t *testing.T) {
+	db := openPostgre(config.DataSource)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := steamworkshop.RefreshPublishedFiles(ctx, db, config.ApiKey, 440, false,
+		steamworkshop.WithReturnPreviews(),
+		steamworkshop.WithReturnVoteData(),
+		steamworkshop.WithReturnTags(),
+		steamworkshop.WithReturnMetadata(),
+		steamworkshop.WithReturnKvTags(),
+	)
 	if err != nil {
 		t.Error(err)
 		return
@@ -131,9 +163,39 @@ func TestQueryFilesAllParams(t *testing.T) {
 
 	j, _ := json.MarshalIndent(&response, "", "\t")
 
-	err = os.WriteFile("./var/items_all.json", j, 0666)
+	err = os.WriteFile("./var/published_files_all.json", j, 0666)
 	if err != nil {
 		t.Error(err)
 		return
+	}
+}
+
+var dbs = []*sql.DB{}
+
+func openPostgre(dataSourceName string) *sql.DB {
+	var err error
+	db, err := sql.Open("postgres", dataSourceName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// db.Open() only creates a connection pool, and doesn't actually establish
+	// a connection. To ensure the connection works you need to do *something*
+	// with a connection.
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dbs = append(dbs, db)
+
+	return db
+}
+
+func closePostgre() {
+	for _, db := range dbs {
+		if db != nil {
+			db.Close()
+		}
 	}
 }
