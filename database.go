@@ -160,12 +160,15 @@ func GetPublishedFiles(db *sql.DB, appId uint, params FileParams) ([]WorkshopFil
 	tagsPredicate := strings.Join(keys, "")
 
 	types := []string{}
-	for _, v := range params.Filter.Types {
-		types = append(types, " OR $"+strconv.Itoa(valueIndex)+"=ANY(tags)")
-		values = append(values, v)
-		valueIndex++
+	typesPredicate := ""
+	if len(params.Filter.Types) > 0 {
+		for _, v := range params.Filter.Types {
+			types = append(types, " OR $"+strconv.Itoa(valueIndex)+"=ANY(tags)")
+			values = append(values, v)
+			valueIndex++
+		}
+		typesPredicate = " AND ( " + strings.Join(types, "") + ") "
 	}
-	typesPredicate := " AND (false " + strings.Join(types, "") + ") "
 
 	query := `SELECT publishedfileid, title, preview_url, time_created, time_updated, subscriptions, array_to_json(tags)
 	FROM published_files
