@@ -128,10 +128,6 @@ func GetPublishedFiles(db *sql.DB, appId uint, params FileParams) ([]WorkshopFil
 		return nil, errors.New("database is not initialized. Did you forgot to init postgre ?")
 	}
 
-	if len(params.Filter.Tags) > 5 {
-		return nil, errors.New("too much tags")
-	}
-
 	sortField, found := sortFields[params.Sort.Field]
 	if !found {
 		sortField = "time_created"
